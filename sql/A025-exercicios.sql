@@ -51,7 +51,8 @@ from users
 WHERE id BETWEEN 111 and 115;
 
 -- 3) Insira permissões (roles) para os usuários inseridos
-INSERT INTO users_roles (user_id, role_id)
+-- INSERT into users_roles (user_id, role_id)
+INSERT ignore INTO users_roles (user_id, role_id)
 SELECT 
 id,
 (SELECT id from roles order by rand() LIMIT 1) as qualquer
@@ -59,7 +60,7 @@ from users
 WHERE id BETWEEN 111 AND 115;
 
 -- 4) Selecione os últimos 5 usuários por ordem decrescente
-SELECT id, first_name 
+SELECT *
 from users
 ORDER by id DESC
 LIMIT 5;
@@ -70,40 +71,46 @@ set email = 'email.novo@hotm.com'
 WHERE id = 115;
 
 -- 6) Remova uma permissão de algum usuário
-DELETE r from users u
-left join roles r
-on r.name = 'GET'
-WHERE first_name = 'Werberty';
+DELETE from users_roles 
+WHERE user_id = 111 AND role_id = 4;
 
 -- 7) Remova um usuário que tem a permissão "PUT"
-DELETE u from users u
-join roles r
-WHERE r.name = 'PUT' AND u.id = 36;
+DELETE u 
+from users u
+inner join users_roles ur on u.id = ur.user_id
+inner join roles r on ur.role_id = r.id 
+WHERE r.name = 'PUT' AND u.id = 75;
 
 -- 8) Selecione usuários com perfís e permissões (obrigatório)
 SELECT u.id as uid, p.id as pid,
-p.bio, u.first_name, ur.role_id 
-FROM users as u
-INNER JOIN profiles as p
-ON u.id = p.user_id
-INNER JOIN  users_roles as ur
-ON u.id = ur.user_id;
-
--- 9) Selecione usuários com perfís e permissões (opcional)
-SELECT u.id as uid, p.id as pid,
-p.bio, u.first_name, ur.role_id 
-FROM users as u
-LEFT JOIN profiles as p
-ON u.id = p.user_id
-INNER JOIN  users_roles as ur
-ON u.id = ur.user_id;
-
--- 10) Selecione usuários com perfís e permissões ordenando por salário
-SELECT u.id as uid, p.id as pid,
-p.bio, u.first_name,u.salary, ur.role_id 
+p.bio, u.first_name, r.name
 FROM users as u
 INNER JOIN profiles as p
 ON u.id = p.user_id
 INNER JOIN  users_roles as ur
 ON u.id = ur.user_id
+INNER JOIN roles r
+ON ur.role_id = r.id;
+
+-- 9) Selecione usuários com perfís e permissões (opcional)
+SELECT u.id as uid, p.id as pid,
+p.bio, u.first_name, r.name
+FROM users as u
+LEFT JOIN profiles as p
+ON u.id = p.user_id
+LEFT JOIN  users_roles as ur
+ON u.id = ur.user_id
+LEFT JOIN roles r
+ON ur.role_id = r.id;
+
+-- 10) Selecione usuários com perfís e permissões ordenando por salário
+SELECT u.id as uid,
+p.bio, u.first_name, r.name, u.salary
+FROM users as u
+LEFT JOIN profiles as p
+ON u.id = p.user_id
+LEFT JOIN  users_roles as ur
+ON u.id = ur.user_id
+LEFT JOIN roles r
+ON ur.role_id = r.id
 ORDER BY salary DESC;
